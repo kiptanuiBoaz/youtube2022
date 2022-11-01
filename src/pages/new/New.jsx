@@ -3,9 +3,31 @@ import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Add a new document in collection "cities"
+      const res = await addDoc(collection(db, "cities"), {
+        name: "Los Angeles",
+        state: "CA",
+        country: "USA",
+        timeStamp: serverTimestamp()
+      });
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
+
+
+
+  }
 
   return (
     <div className="new">
@@ -46,7 +68,7 @@ const New = ({ inputs, title }) => {
                   <input type={input.type} placeholder={input.placeholder} />
                 </div>
               ))}
-              <button>Send</button>
+              <button onClick={handleAdd}>Send</button>
             </form>
           </div>
         </div>
