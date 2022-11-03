@@ -1,33 +1,57 @@
+import React, { useEffect, useState } from "react";
 import "./new.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import { useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../../firebase";
+import { setDoc, serverTimestamp, doc } from "firebase/firestore";
+import { auth, db, storage } from "../../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { ref, uploadBytesResumable } from "firebase/storage";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
+  const [data, setData] = useState({});
+
+  useEffect(() => {
+    const uploadFile = () => {
+
+      const name = new Date().getTime() + file.name;
+      console.log(name);
+      // const storageRef = ref(storage, file.name);
+    }
+    file && uploadFile();
+  }, [file])
 
   const handleAdd = async (e) => {
     e.preventDefault();
 
     try {
-      // Add a new document in collection "cities"
-      const res = await addDoc(collection(db, "cities"), {
-        name: "Los Angeles",
-        state: "CA",
-        country: "USA",
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+
+      await setDoc(doc(db, "users", res.user.uid), {
+        ...data,
         timeStamp: serverTimestamp()
       });
+
       console.log(res);
     } catch (error) {
       console.log(error);
     }
 
-
-
   }
+
+  const handleInput = (e) => {
+    const id = e.target.id;
+    const value = e.target.value;
+
+    setData({ ...data, [id]: value })
+  }
+
+
 
   return (
     <div className="new">
@@ -62,10 +86,10 @@ const New = ({ inputs, title }) => {
                 />
               </div>
 
-              {inputs.map((input) => (
-                <div className="formInput" key={input.id}>
-                  <label>{input.label}</label>
-                  <input type={input.type} placeholder={input.placeholder} />
+              {inputs.map(({ placeholder, label, id, type }) => (
+                <div className="formInput" key={id}>
+                  <label>{label}</label>
+                  <input id={id} onChange={handleInput} type={type} placeholder={placeholder} />
                 </div>
               ))}
               <button onClick={handleAdd}>Send</button>
