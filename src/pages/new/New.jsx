@@ -3,21 +3,58 @@ import "./new.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import { setDoc, serverTimestamp, doc } from "firebase/firestore";
+import {storageRef ,setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { auth, db, storage } from "../../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { ref, uploadBytesResumable } from "firebase/storage";
+import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [data, setData] = useState({});
+  const [perc, setPerce] = useState(null);
 
   useEffect(() => {
     const uploadFile = () => {
 
       const name = new Date().getTime() + file.name;
-      console.log(name);
-      // const storageRef = ref(storage, file.name);
+      const storageRef = ref(storage, name);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      // Register three observers:
+      // 1. 'state_changed' observer, called any time the state changes
+      // 2. Error observer, called on failure
+      // 3. Completion observer, called on successful completion
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          // Observe state change events such as progress, pause, and resume
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setPerce(progress);
+          console.log('Upload is ' + progress + '% done');
+          switch (snapshot.state) {
+            case 'paused':
+              console.log('Upload is paused');
+              break;
+            case 'running':
+              console.log('Upload is running');
+              break;
+            default:
+              break;
+          }
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+          console.log(error);
+        },
+        () => {
+          // Handle successful uploads on complete
+          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setData((prev) => ({ ...prev, img: downloadURL }))
+          });
+        }
+      );
+
     }
     file && uploadFile();
   }, [file])
@@ -92,7 +129,7 @@ const New = ({ inputs, title }) => {
                   <input id={id} onChange={handleInput} type={type} placeholder={placeholder} />
                 </div>
               ))}
-              <button onClick={handleAdd}>Send</button>
+              <button dissbled={perc !==null &&  perc < 100} onClick={handleAdd}>Send</button>
             </form>
           </div>
         </div>
