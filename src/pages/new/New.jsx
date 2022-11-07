@@ -7,11 +7,13 @@ import {storageRef ,setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { auth, db, storage } from "../../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import {useNavigate} from "react-router-dom";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [data, setData] = useState({});
   const [perc, setPerce] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const uploadFile = () => {
@@ -73,7 +75,7 @@ const New = ({ inputs, title }) => {
         ...data,
         timeStamp: serverTimestamp()
       });
-
+      navigate(-1)
       console.log(res);
     } catch (error) {
       console.log(error);
