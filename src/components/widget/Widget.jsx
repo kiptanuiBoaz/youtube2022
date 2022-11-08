@@ -4,6 +4,9 @@ import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
+import { useEffect } from "react";
+import {collection, query, where, getDocs} from "firebase/firestore";
+import {db} from "../../firebase"
 
 const Widget = ({ type }) => {
   let data;
@@ -77,6 +80,33 @@ const Widget = ({ type }) => {
     default:
       break;
   }
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const today = new Date();
+      const lastMonth = new Date(new Date().setMonth(today.getMonth() - 1))
+      const prevMonth = new Date(new Date().setMonth(today.getMonth() - 2))
+
+      const lastMonthQuery = query(
+        collection(db, "users"), 
+        where("timeStamp", "<=", today), 
+        where("timeStamp", ">", lastMonth)
+      );
+
+      const prevMonthQuery = query(
+        collection(db, "users"), 
+        where("timeStamp", "<=", today), 
+        where("timeStamp", ">", lastMonth)
+      );
+
+      const lastMonthData = await getDocs(lastMonthQuery);
+      const prevMonthData = await getDocs(prevMonthQuery)
+
+
+    }
+    fetchData();
+  }, [])
 
   return (
     <div className="widget">
